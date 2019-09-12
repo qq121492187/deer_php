@@ -10,3 +10,25 @@
 // +----------------------------------------------------------------------
 
 // 应用公共文件
+
+
+function responseData($data, $msg = "请求成功")
+{
+    responseResult(1, $msg, $data);
+}
+
+function responseError($msg = "请求失败")
+{
+    responseResult(2, $msg);
+}
+
+function responseResult($code, $msg, $data = [])
+{
+    $result = [
+        "code" => $code,
+        "msg" => $msg,
+        "data" => $data
+    ];
+    echo json_encode($result);
+    die;
+}
