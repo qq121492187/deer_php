@@ -29,3 +29,7 @@ Route::post('store/addStore', 'api/store/addStore');
 //新增订单
 Route::post('order/addOrder', 'api/order/addOrder');
 Route::get('order/listOrder', 'api/order/listOrder');
+Route::get('order/index', 'api/order/index');
+Route::post('order/complete', 'api/order/completeOrder');
+Route::get('order/search', 'api/order/searchOrder');
+Route::get('order/detail', 'api/order/orderDetail');
