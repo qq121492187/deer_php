@@ -152,7 +152,10 @@ class Order extends CommonController
     function searchOrder()
     {
         $keyword = $this->params['keyword'];
-        //todo
+        //查编号或姓名
+        $where['order_id|order_ctname'] = ['like', "%{$keyword}%", 'or'];
+        $res = db('order')->where($where)->select();
+        responseData($res);
     }
 
     /**
@@ -163,13 +166,83 @@ class Order extends CommonController
         $order = db('order')
             ->where('order_id', $this->params['order_id'])
             ->find();
+        //客户信息
+        $userInfo = [
+            'id' => $order['order_uid'],
+            'contact' => $order['order_contact'],
+            'name' => $order['order_ctname'],
+            'address' => $order['order_address'],
+        ];
+
+        //商品信息
+        $field = [
+            'cart_count',
+            'goods_id',
+            'goods_name',
+            'goods_desc',
+            'goods_price',
+            'goods_discount'
+        ];
         $carts = db('cart')
             ->alias('c')
             ->join('goods g', 'g.goods_id=c.cart_gid')
-            ->field(['cart_count', 'goods_id', 'goods_name', 'goods_desc', 'goods_price'])
+            ->field($field)
             ->where('cart_oid', $this->params['order_id'])
             ->select();
-        $order['carts'] = $carts;
-        responseData($order);
+
+        $discount = 0.00;
+        $goodsPrice = 0.00;
+        foreach ($carts as $value) {
+            $discount += $value['goods_discount'];
+            $goodsPrice += $value['goods_price'];
+        }
+        $coupon = $order['order_coupon'];
+        $reward = $order['order_reward'];
+        $finalPrice = $goodsPrice - $discount - $coupon - $reward;
+
+        $cartInfo['send_price'] = $order['order_price'];
+        $cartInfo['discount'] = $discount;
+        $cartInfo['coupon'] = $coupon;
+        $cartInfo['reward'] = $reward;
+        $cartInfo['goods_price'] = $goodsPrice;
+        $cartInfo['final_price'] = $finalPrice;
+        $cartInfo['carts'] = $carts;
+
+        //订单信息
+        $orderInfo = [
+            'order_ID' => $order['order_id'],
+            'order_time' => $order['order_time'],
+            'pay_type' => $order['order_pay_type'],
+            'order_type' => $order['order_type'],
+            'order_content' => $order['order_content'],
+        ];
+
+        $data = [
+            'userInfo' => $userInfo,
+            'cartInfo' => $cartInfo,
+            'orderInfo' => $orderInfo
+        ];
+
+        responseData($data);
+    }
+
+    /**
+     * 接单
+     */
+    function applyOrder()
+    {
+        $orderId = $this->params['order_id'];
+        $res = db('order')->where('order_id', $orderId)->find();
+        if (!$res) {
+            responseError('订单不存在');
+        }
+        //是否被领取
+        $isApplied = $res['order_uid'] != null;
+        if ($isApplied) {
+            responseError('此订单已被领取');
+        }
+        //接单
+        db('order')->where('order_id', $orderId)->setField('order_uid', $this->params['user_id']);
+        responseData('接单成功');
     }
 }

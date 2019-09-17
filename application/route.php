@@ -33,3 +33,4 @@ Route::get('order/index', 'api/order/index');
 Route::post('order/complete', 'api/order/completeOrder');
 Route::get('order/search', 'api/order/searchOrder');
 Route::get('order/detail', 'api/order/orderDetail');
+Route::post('order/apply', 'api/order/applyOrder');
