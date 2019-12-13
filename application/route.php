@@ -11,6 +11,11 @@
 
 use think\Route;
 
+/**
+ * 上传文件
+ */
+Route::post('file/upload', 'api/file/upload');
+
 /**用户相关**/
 //注册
 Route::post('user/register', 'api/user/register');
